@@ -1,0 +1,101 @@
+/// <reference types="cypress"/>
+
+// cy.viewport
+// arquivos de config
+// configs por linha de comando
+
+
+context('Dev Finances', () => {
+
+    beforeEach(() => {
+        cy.visit('https://devfinance-agilizei.netlify.app/#')
+        cy.get('#data-table > tbody > tr').should('have.length', 0) //verificar o tamanho da tabela 0 antes de executar
+
+    });
+
+    it('Cadastrar nova despesa', () => {
+        
+        cy.get('#transaction .button').click()  //id + classe
+        cy.get('#description').type('Mesada')  //id
+        cy.get('#amount').type(20)  //[name='amount'] atributos
+        cy.get('#date').type('2023-09-20')  //[type='date'] atributos
+        cy.get('button').contains('Salvar').click()  //tipo e valor
+
+        cy.get('#data-table tbody tr').should('have.length', 1) //Outra forma de fazer o Assert com o tamanho da tabela (#data-table tbody tr)
+
+    });
+
+    it('Cadastrar saída de despesa', () => {
+        
+
+        cy.get('#transaction .button').click()  //id + classe
+        cy.get('#description').type('Mesada')  //id
+        cy.get('#amount').type(-12)  //[name='amount'] atributos
+        cy.get('#date').type('2023-09-20')  //[type='date'] atributos
+        cy.get('button').contains('Salvar').click()  //tipo e valor
+
+        cy.get('#data-table').should('have.length', 1) //Outra forma de fazer o Assert com o tamanho da tabela (#data-table tbody tr)
+
+    });
+
+    it('Remover ', () => {
+        const entrada = 'Total'
+        const saida = 'Banana'
+
+        cy.get('#transaction .button').click() 
+        cy.get('#description').type(entrada)  
+        cy.get('#amount').type(100) 
+        cy.get('#date').type('2023-09-20')  
+        cy.get('button').contains('Salvar').click() 
+
+        cy.get('#transaction .button').click() 
+        cy.get('#description').type(saida)  
+        cy.get('#amount').type(-35) 
+        cy.get('#date').type('2023-09-20')  
+        cy.get('button').contains('Salvar').click()
+
+        cy.get('td.description')  //.contains(entrada)
+        .contains(entrada)
+        .parent()
+        .find('img[onclick*=remove]') //abrevia o seletor para remover da tabela
+        .click()
+        
+
+        //estrategia 2: Buscar todos os irmaoes, e buscar oque tem img + attr
+        cy.get('td.description')
+        .contains(saida)
+        .siblings()
+        .children('img[onclick*=remove]') //remove o elemento filho
+        .click()
+
+        cy.get('#data-table tbody tr').should('have.length', 0)
+    });
+
+
+    it.only('Validar saldo com diversas transações', () => {
+        const entrada = 'Total'
+        const saida = 'Banana'
+
+        cy.get('#transaction .button').click() 
+        cy.get('#description').type(entrada)  
+        cy.get('#amount').type(100) 
+        cy.get('#date').type('2023-09-20')  
+        cy.get('button').contains('Salvar').click() 
+
+        cy.get('#transaction .button').click() 
+        cy.get('#description').type(saida)  
+        cy.get('#amount').type(-35) 
+        cy.get('#date').type('2023-09-20')  
+        cy.get('button').contains('Salvar').click()
+
+        cy.get("#data-table tbody tr")
+        .each(($el, index, $list) => {
+            cy.log(index)
+            cy.get($el).find("td.income, td.expense")
+              .invoke("text").then(text => {
+                cy.log(text)
+              })
+        })
+    });
+    
+});
